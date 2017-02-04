@@ -21,11 +21,11 @@
 SHELL = /bin/sh
 OUTPUT_NAME=firmware
 ARDUINO_SDK_DIR = /home/klangner/.arduino15
-SAM_DIR = $(ARDUINO_DIR)/packages/arduino/hardware/sam/1.6.11/system
-TOOLS_DIR = $(ARDUINO_DIR)/packages/arduino/tools
-OUTPUT_DIR = build
-PROJECT_DIR = .
-UPLOAD_PORT=/dev/cu.usbmodemfa141
+SAM_DIR = $(ARDUINO_SDK_DIR)/packages/arduino/hardware/sam/1.6.11/system
+TOOLS_DIR = $(ARDUINO_SDK_DIR)/packages/arduino/tools
+OUTPUT_DIR = ./build
+PROJECT_DIR = ./src
+UPLOAD_PORT=/dev/ttyACM0
 USB_DEFINITIONS=-DUSB_VID=0x2341 -DUSB_PID=0x003e -DUSBCON '-DUSB_MANUFACTURER="Unknown"' '-DUSB_PRODUCT="Arduino Due"'
 
 #-------------------------------------------------------------------------------
@@ -46,10 +46,10 @@ INCLUDES += -I$(SAM_DIR)/CMSIS/Device/ATMEL
 #-------------------------------------------------------------------------------
 ifdef DEBUG
 OPTIMIZATION = -g -O0 -DDEBUG
-OBJ_DIR=debug
+OBJ_DIR=$(OUTPUT_DIR)/debug
 else
 OPTIMIZATION = -Os
-OBJ_DIR=release
+OBJ_DIR=$(OUTPUT_DIR)/release
 endif
 
 #-------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ LKELF = $(CROSS_COMPILE)g++
 OBJCP = $(CROSS_COMPILE)objcopy
 RM=rm -Rf
 MKDIR=mkdir -p
-UPLOAD_BOSSA=$(ROOT)/bossac/1.6.1-arduino/bossac
+UPLOAD_BOSSA=$(TOOLS_DIR)/bossac/1.6.1-arduino/bossac
 
 
 #-------------------------------------------------------------------------------
@@ -82,8 +82,8 @@ CPPFLAGS += $(OPTIMIZATION) $(INCLUDES)
 ASFLAGS = -mcpu=cortex-m3 -mthumb -Wall -g $(OPTIMIZATION) $(INCLUDES)
 ARFLAGS = rcs
 
-LNK_SCRIPT=$(ARDUINO_DIR)/packages/arduino/hardware/sam/1.6.11/variants/arduino_due_x/linker_scripts/gcc/flash.ld
-LIBSAM_ARCHIVE=$(ARDUINO_DIR)/packages/arduino/hardware/sam/1.6.11/variants/arduino_due_x/libsam_sam3x8e_gcc_rel.a
+LNK_SCRIPT=$(ARDUINO_SDK_DIR)/packages/arduino/hardware/sam/1.6.11/variants/arduino_due_x/linker_scripts/gcc/flash.ld
+LIBSAM_ARCHIVE=$(ARDUINO_SDK_DIR)/packages/arduino/hardware/sam/1.6.11/variants/arduino_due_x/libsam_sam3x8e_gcc_rel.a
 
 UPLOAD_PORT_BASENAME=$(patsubst /dev/%,%,$(UPLOAD_PORT))
 
@@ -138,7 +138,7 @@ all: binary
 #-------------------------------------------------------------------------------
 .PHONY: clean
 clean:
-	-@$(RM) $(OBJ_DIR) 1>/dev/null 2>&1
+	-@$(RM) $(OUTPUT_DIR) 1>/dev/null 2>&1
 	-@$(RM) $(OUTPUT_DIR)/$(OUTPUT_NAME) 1>/dev/null 2>&1
 
 #-------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ binary: prepare $(OBJ_DIR)/$(OUTPUT_NAME).bin
 .PHONY: install
 install: binary
 	-@echo "Touch programming port ..."
-	-@stty -f "/dev/$(UPLOAD_PORT_BASENAME)" raw ispeed 1200 ospeed 1200 cs8 -cstopb ignpar eol 255 eof 255
+	-@stty -F "/dev/$(UPLOAD_PORT_BASENAME)" raw ispeed 1200 ospeed 1200 cs8 -cstopb ignpar eol 255 eof 255
 	-@printf "\x00" > "/dev/$(UPLOAD_PORT_BASENAME)"
 	-@echo "Waiting before uploading ..."
 	-@sleep 1

@@ -20,7 +20,7 @@ http://www.atwillys.de/content/cc/using-custom-ide-and-system-library-on-arduino
   * Clone the project
   * Modify **SAM_DIR** in Makefile to point to the toolchain installation.
   * Modify **TOOLS_DIR**  in Makefile to point to the tools installation.
-  
+    
   
 ## What is used from Arduino
   
